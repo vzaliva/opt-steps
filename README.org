@@ -1,0 +1,12 @@
+* Simple script to display LLVM IR optimizer steps
+
+** Instlalation
+#+BEGIN_SRC sh
+  pip install -r requirements.txt
+#+END_SRC
+
+** Usage
+#+BEGIN_SRC sh
+  ./opt-steps.py qsort.c
+#+END_SRC
+
