@@ -6,8 +6,10 @@ import sys
 import subprocess
 import click
 
+OPTFLAG='-O3'
+
 def get_passes(llname):
-    p = subprocess.check_output(['opt', '-O3', '-opt-bisect-limit=-1', '-S', llname, '-o', '/dev/null'], stderr=subprocess.STDOUT, text=True)
+    p = subprocess.check_output(['opt', OPTFLAG, '-opt-bisect-limit=-1', '-S', llname, '-o', '/dev/null'], stderr=subprocess.STDOUT, text=True)
     pl = list(map(str.strip, p.split('\n')))
     res = []
     for s in pl:
@@ -40,7 +42,7 @@ def main(verbose, cname):
     for (pn,ps) in passes:
         pname = "%s.%d.ll" % (name,pn)
         print("[%d/%d] Generating %s: %s" % (pn,ptotal,pname,ps))
-        subprocess.check_call(['opt', '-O3', ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
+        subprocess.check_call(['opt', OPTFLAG, ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
         result = subprocess.run(['cmp', '-s', prev, pname], stdout=subprocess.DEVNULL)
         if result.returncode == 0:
             print("\t unchanged")
