@@ -41,7 +41,7 @@ def main(verbose, cname):
         pname = "%s.%d.ll" % (name,pn)
         print("[%d/%d] Generating %s: %s" % (pn,ptotal,pname,ps))
         subprocess.check_call(['opt', '-O3', ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
-        result = subprocess.run(['diff', '-q', prev, pname], stdout=subprocess.DEVNULL)
+        result = subprocess.run(['cmp', '-s', prev, pname], stdout=subprocess.DEVNULL)
         if result.returncode == 0:
             print("\t unchanged")
             os.remove(pname)
