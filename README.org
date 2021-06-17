@@ -7,6 +7,6 @@
 
 ** Usage
 #+BEGIN_SRC sh
-  ./opt-steps.py qsort.c
+  ./opt-steps.py samples/qsort.c
 #+END_SRC
 

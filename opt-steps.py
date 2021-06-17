@@ -36,9 +36,10 @@ def main(verbose, cname):
 
     passes = get_passes(llname)
     prev = llname
+    ptotal = len(passes)
     for (pn,ps) in passes:
         pname = "%s.%d.ll" % (name,pn)
-        print("Generating %s: %s" % (pname,ps))
+        print("[%d/%d] Generating %s: %s" % (pn,ptotal,pname,ps))
         subprocess.check_call(['opt', '-O3', ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
         result = subprocess.run(['diff', '-q', prev, pname], stdout=subprocess.DEVNULL)
         if result.returncode == 0:
