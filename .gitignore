@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 **/*.ll
 /samples/*.html
+/samples/*.diff

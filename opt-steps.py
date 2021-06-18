@@ -49,6 +49,7 @@ INDEX_HTML = """
         <table>
             <tr>
             <th>File</th>
+            <th>Side-by-side</th>
             <th>Diff</th>
             <th>Description</th>
             </tr>
@@ -67,16 +68,15 @@ def flink(s):
         return('<a href="%s"> %s</a>' % (n,n))
 
 def mkindex(cname, iname, l):
-    rows_html = ["<tr><td>%s</td> <td>%s</td><td><i>%s</i></td> </tr>" % (flink(f),flink(d),ds) for (f,d,ds) in l]
+    rows_html = ["<tr><td>%s</td> <td>%s</td><td>%s</td><td><i>%s</i></td> </tr>" % (flink(f),flink(c),flink(d),ds) for (f,c,d,ds) in l]
     html_params = {
             "html_title": ("LLVM optimization steps for %s" % cname),
              "table_rows" : "\n".join(rows_html)
         }
     
     html = INDEX_HTML % html_params
-    fh = io.open(iname, 'w')
-    fh.write(html)
-    fh.close()
+    with io.open(iname, 'w') as fh:
+        fh.write(html)
     
 @click.command()
 @click.version_option("1.0")
@@ -98,21 +98,24 @@ def main(verbose, cname):
     passes = get_passes(llname)
     prev = llname
     ptotal = len(passes)
-    res = [(llname, None, "Original file")]
+    res = [(llname, None, None, "Original file")]
     for (pn,ps) in passes:
         pname = "%s.%d.ll" % (name,pn)
         print("[%d/%d] %s" % (pn, ptotal, ps))
         subprocess.check_call(['opt', OPTFLAG, ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
-        result = subprocess.run(['cmp', '-s', prev, pname], stdout=subprocess.DEVNULL)
+        result = subprocess.run(['diff', '-u', prev, pname], text=True,  capture_output=True)
         if result.returncode == 0:
             print("\t unchanged")
             os.remove(pname)
         else:
             print("\t %s generated" % pname)
-            dname = "%s.%d.diff.html" % (name,pn)
-            mkdiff(prev,pname,dname)
+            dname = "%s.%d.diff" % (name,pn)
+            with io.open(dname, 'w') as fh:
+                fh.writelines(result.stdout)
+            cmpname = "%s.%d.cmp.html" % (name,pn)
+            mkdiff(prev,pname,cmpname)
             prev = pname
-            res.append((pname, dname, ps))
+            res.append((pname, cmpname, dname, ps))
     iname = "%s.html" % name
     mkindex(cname, iname, res)
     
