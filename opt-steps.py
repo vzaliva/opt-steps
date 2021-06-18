@@ -70,6 +70,8 @@ INDEX_HTML = """
             %(table_rows)s
         </table>
   </tr>
+<br>
+Generated with <a href="https://github.com/vzaliva/opt-steps">opt-steps</a>
     </body>
     </html>
 """
