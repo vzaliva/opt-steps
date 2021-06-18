@@ -106,7 +106,10 @@ def main(verbose, cname):
     name = cname[:-2]
     llname = name + '.ll'
     # Generate LL file
-    subprocess.check_call(['clang', '-emit-llvm', '-S', '-O0', '-Xclang', '-disable-O0-optnone', cname, '-o', llname])
+    subprocess.check_call(['clang', '-emit-llvm', '-S', '-O0',
+                           '-mllvm', '-disable-llvm-optzns',
+                           '-Xclang', '-disable-O0-optnone', cname,
+                           '-o', llname])
 
     passes = get_passes(llname)
     prev = llname
