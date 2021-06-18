@@ -6,6 +6,7 @@ import re
 import sys
 import subprocess
 import click
+import difflib
 
 import diff2HtmlCompare
 
@@ -27,11 +28,23 @@ class CodeDiffOptions(object):
     syntax_css = "vs"
     print_width = None
 
-def mkdiff(file1, file2, outputpath):
+# Generate side-by-side comparison
+def mkcmp(file1, file2, outputpath):
     codeDiff = diff2HtmlCompare.CodeDiff(file1, file2, name=file2)
     options = CodeDiffOptions()
     codeDiff.format(options)
     codeDiff.write(outputpath)
+
+
+# Generate context diff
+def mkdiff(file1, file2, outputpath):
+    with open(file1, 'r') as fh:
+        l1 = fh.readlines()
+    with open(file2, 'r') as fh:
+        l2 = fh.readlines()
+    hdiff = difflib.HtmlDiff(wrapcolumn=80).make_file(l1,l2,file1,file2,context=True,numlines=5)
+    with io.open(outputpath, 'w') as fh:
+        fh.writelines(hdiff)
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -50,7 +63,7 @@ INDEX_HTML = """
             <tr>
             <th>File</th>
             <th>Side-by-side</th>
-            <th>Diff</th>
+            <th>Compact Diff</th>
             <th>Description</th>
             </tr>
             %(table_rows)s
@@ -103,22 +116,22 @@ def main(verbose, cname):
         pname = "%s.%d.ll" % (name,pn)
         print("[%d/%d] %s" % (pn, ptotal, ps))
         subprocess.check_call(['opt', OPTFLAG, ("-opt-bisect-limit="+str(pn)), '-S', llname, '-o', pname], stderr=subprocess.DEVNULL)
-        result = subprocess.run(['diff', '-u', prev, pname], text=True,  capture_output=True)
+        result = subprocess.run(['cmp', '-s', prev, pname],stdout=subprocess.DEVNULL)
         if result.returncode == 0:
             print("\t unchanged")
             os.remove(pname)
         else:
             print("\t %s generated" % pname)
-            dname = "%s.%d.diff" % (name,pn)
-            with io.open(dname, 'w') as fh:
-                fh.writelines(result.stdout)
+            dname = "%s.%d.diff.html" % (name,pn)
+            mkdiff(prev,pname,dname)
             cmpname = "%s.%d.cmp.html" % (name,pn)
-            mkdiff(prev,pname,cmpname)
-            prev = pname
+            mkcmp(prev,pname,cmpname)
             res.append((pname, cmpname, dname, ps))
+            prev = pname
     iname = "%s.html" % name
     mkindex(cname, iname, res)
     
 if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
     main()
+
