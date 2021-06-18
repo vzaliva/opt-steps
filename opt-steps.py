@@ -59,6 +59,7 @@ INDEX_HTML = """
         <meta name="mobile-web-app-capable" content="yes">
     </head>
     <body>
+        Source file: %(c_file)s<br>
         <table>
             <tr>
             <th>File</th>
@@ -78,12 +79,13 @@ def flink(s):
         return("")
     else:
         n = os.path.basename(s)
-        return('<a href="%s"> %s</a>' % (n,n))
+        return('<a href="%s">%s</a>' % (n,n))
 
 def mkindex(cname, iname, l):
     rows_html = ["<tr><td>%s</td> <td>%s</td><td>%s</td><td><i>%s</i></td> </tr>" % (flink(f),flink(c),flink(d),ds) for (f,c,d,ds) in l]
     html_params = {
             "html_title": ("LLVM optimization steps for %s" % cname),
+             "c_file": flink(cname),
              "table_rows" : "\n".join(rows_html)
         }
     
